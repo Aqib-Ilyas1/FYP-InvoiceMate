@@ -52,11 +52,11 @@ export default function InvoiceOCR() {
       setExtractedData(data.extractedData);
       setFormData({
         clientId: data.extractedData.clientId || null,
-        invoiceDate: data.extractedData.invoiceDate || new Date().toISOString().split('T')[0],
-        dueDate: data.extractedData.dueDate || null,
+        invoiceDate: data.extractedData.invoiceDate ? new Date(data.extractedData.invoiceDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        dueDate: data.extractedData.dueDate ? new Date(data.extractedData.dueDate).toISOString().split('T')[0] : null,
         currency: data.extractedData.currency || 'USD',
         paymentTerms: data.extractedData.paymentTerms || '',
-        notes: data.extractedData.notes || '',
+        notes: `Invoice Number: ${data.extractedData.invoiceNumber}\nAccount Number: ${data.extractedData.accountNumber}\nSender: ${data.extractedData.sender}`,
         status: 'draft',
         lineItems: data.extractedData.lineItems || [],
       });
@@ -198,8 +198,7 @@ export default function InvoiceOCR() {
               </CardHeader>
               <CardContent>
                 <div
-                  className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-                    dragActive
+                  className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${dragActive
                       ? 'border-primary bg-primary/5'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
@@ -455,7 +454,7 @@ export default function InvoiceOCR() {
 
             {/* Actions */}
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => navigate('/invoices/new')}>
+              <Button variant="outline" onClick={() => navigate('/invoices/new/manual')}>
                 Edit in Full Editor
               </Button>
               <Button onClick={handleSave} disabled={saveMutation.isPending}>
