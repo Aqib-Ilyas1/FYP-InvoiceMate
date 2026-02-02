@@ -42,12 +42,12 @@ export default function NewInvoice() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <ScanLine className="h-6 w-6 text-purple-600" />
-                AI Scanner (OCR)
+                Scanner (OCR)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600">
-                Upload an image or PDF of an invoice and let AI extract the data.
+                Upload an image of an invoice and let extract the data.
               </p>
             </CardContent>
           </Card>

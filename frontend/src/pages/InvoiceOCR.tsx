@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { ocrApi } from '@/lib/ocrApi';
 import { invoiceApi, LineItem, InvoiceInput } from '@/lib/invoiceApi';
+import { clientApi, Client } from '@/lib/clientApi';
 import { toast } from 'sonner';
 
 export default function InvoiceOCR() {
@@ -45,19 +46,30 @@ export default function InvoiceOCR() {
     lineItems: [],
   });
 
+  const { data: clientsData } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => clientApi.getClients({ limit: 1000 }),
+  });
+
   // Process OCR mutation
   const ocrMutation = useMutation({
     mutationFn: ocrApi.processInvoiceImage,
     onSuccess: (data) => {
       setExtractedData(data.extractedData);
+      const clients = clientsData?.clients || [];
+      const matchedClient = clients.find(
+        (client: Client) =>
+          client.clientName.toLowerCase() === data.extractedData.clientName?.toLowerCase()
+      );
+
       setFormData({
-        clientId: data.extractedData.clientId || null,
+        clientId: matchedClient?.id || null,
         invoiceDate: data.extractedData.invoiceDate ? new Date(data.extractedData.invoiceDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        dueDate: data.extractedData.dueDate ? new Date(data.extractedData.dueDate).toISOString().split('T')[0] : null,
+        dueDate: data.extractedData.invoiceDate ? new Date(data.extractedData.invoiceDate).toISOString().split('T')[0] : null,
         currency: data.extractedData.currency || 'USD',
         paymentTerms: data.extractedData.paymentTerms || '',
         notes: `Invoice Number: ${data.extractedData.invoiceNumber}\nAccount Number: ${data.extractedData.accountNumber}\nSender: ${data.extractedData.sender}`,
-        status: 'draft',
+        status: 'sent',
         lineItems: data.extractedData.lineItems || [],
       });
       setIsProcessing(false);
@@ -183,9 +195,9 @@ export default function InvoiceOCR() {
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">AI Invoice Scanner</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Invoice Scanner</h1>
           <p className="text-gray-600 mt-1">
-            Upload an invoice image and let AI extract the data
+            Upload an invoice image
           </p>
         </div>
 
@@ -199,9 +211,8 @@ export default function InvoiceOCR() {
               <CardContent>
                 <div
                   className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${dragActive
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-300 hover:border-gray-400'}`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
@@ -244,7 +255,7 @@ export default function InvoiceOCR() {
                         Drop your invoice image here
                       </p>
                       <p className="text-sm text-gray-500 mb-4">
-                        or click to browse (PNG, JPG, PDF - Max 10MB)
+                        or click to browse (PNG, JPG - Max 10MB)
                       </p>
                       <input
                         type="file"
@@ -454,7 +465,7 @@ export default function InvoiceOCR() {
 
             {/* Actions */}
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => navigate('/invoices/new/manual')}>
+              <Button variant="outline" onClick={() => navigate('/invoices/new/manual')}> 
                 Edit in Full Editor
               </Button>
               <Button onClick={handleSave} disabled={saveMutation.isPending}>
