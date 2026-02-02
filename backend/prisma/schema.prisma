@@ -1,0 +1,95 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  passwordHash  String
+  fullName      String?
+  companyName   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  invoices      Invoice[]
+  clients       Client[]
+
+  @@index([email])
+}
+
+model Client {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientName    String
+  clientEmail   String?
+  clientAddress String?
+  clientPhone   String?
+  taxId         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  invoices      Invoice[]
+
+  @@index([userId])
+}
+
+model Invoice {
+  id              Int          @id @default(autoincrement())
+  userId          Int
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId        Int?
+  client          Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  invoiceNumber   String       @unique
+  invoiceDate     DateTime
+  dueDate         DateTime?
+  currency        String       @default("USD")
+  subtotal        Decimal      @default(0)
+  totalTax        Decimal      @default(0)
+  total           Decimal
+  paymentTerms    String?
+  notes           String?
+  status          String       @default("draft")
+  source          String       @default("manual")
+  confidenceScore Decimal?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  lineItems       LineItem[]
+  payments        Payment[]
+
+  @@index([userId])
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([invoiceDate])
+}
+
+model LineItem {
+  id          Int      @id @default(autoincrement())
+  invoiceId   Int
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Decimal  @default(1)
+  unitPrice   Decimal
+  taxRate     Decimal  @default(0)
+  taxAmount   Decimal  @default(0)
+  lineTotal   Decimal
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model Payment {
+  id              Int      @id @default(autoincrement())
+  invoiceId       Int
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount          Decimal
+  paymentDate     DateTime
+  paymentMethod   String?
+  referenceNumber String?
+  notes           String?
+  createdAt       DateTime @default(now())
+}
