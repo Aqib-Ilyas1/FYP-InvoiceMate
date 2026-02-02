@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import fs from 'fs';
 import { createWorker } from 'tesseract.js';
 
@@ -11,13 +11,13 @@ const parseExtractedText = (text: string) => {
     lineItems: [],
   };
 
-  // Very basic regex patterns - these would need to be much more robust for production
   const patterns = {
-    invoiceNumber: /invoice number[:\s]+(\w+)/i,
-    invoiceDate: /invoice date[:\s]+(\w+\s+\d{1,2},\s+\d{4})/i,
-    dueDate: /due date[:\s]+(\w+\s+\d{1,2},\s+\d{4})/i,
-    total: /total[:\s]+\$(\d+\.\d{2})/i,
-    clientName: /bill to[:\s]+(\w+\s+\w+)/i,
+    invoiceNumber: /ID#(\d+)/,
+    invoiceDate: /(\d{1,2}\s+\w+\s+\d{4})/,
+    clientName: /Sent to\n(.+?)\n/,
+    amount: /Amount\n(.+?)\n/,
+    accountNumber: /Bank Account\n(.+?)\n/,
+    sender: /Sent by\n(.+?)\n/,
   };
 
   for (const key in patterns) {
@@ -27,16 +27,12 @@ const parseExtractedText = (text: string) => {
     }
   }
 
-  // This is a placeholder for line item extraction, which is very complex
-  // and would likely require a more advanced parsing strategy.
-  const lineItemRegex = /(\w+[\w\s]+)\s+(\d+)\s+\$(\d+\.\d{2})\s+\$(\d+\.\d{2})/g;
-  let match;
-  while ((match = lineItemRegex.exec(text)) !== null) {
+  // Create a line item from the extracted amount
+  if (extractedData.amount) {
     extractedData.lineItems.push({
-      description: match[1].trim(),
-      quantity: parseInt(match[2]),
-      unitPrice: parseFloat(match[3]),
-      lineTotal: parseFloat(match[4]),
+      description: 'Payment',
+      quantity: 1,
+      unitPrice: parseFloat(extractedData.amount.replace(/,/g, '')),
     });
   }
 
@@ -63,6 +59,27 @@ export const processInvoiceImage = async (req: Request, res: Response, next: Nex
     const extractedData = parseExtractedText(text);
     console.log('Extracted data:', extractedData);
 
+    // Create a new client if it doesn't exist
+    if (extractedData.clientName) {
+      const existingClient = await prisma.client.findFirst({
+        where: {
+          userId,
+          clientName: {
+            equals: extractedData.clientName,
+            mode: 'insensitive',
+          },
+        },
+      });
+
+      if (!existingClient) {
+        await prisma.client.create({
+          data: {
+            userId,
+            clientName: extractedData.clientName,
+          },
+        });
+      }
+    }
 
     // Clean up: delete the uploaded file
     fs.unlinkSync(imagePath);
