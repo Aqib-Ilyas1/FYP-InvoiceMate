@@ -18,7 +18,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Invoices', href: '/invoices', icon: FileText },
   { name: 'Clients', href: '/clients', icon: Users },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  // { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export default function Sidebar({ className }: SidebarProps) {

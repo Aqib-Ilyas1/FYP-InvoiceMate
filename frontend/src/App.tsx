@@ -13,6 +13,7 @@ import InvoiceNLP from '@/pages/InvoiceNLP';
 import Clients from '@/pages/Clients';
 import Settings from '@/pages/Settings';
 import NewInvoice from '@/pages/NewInvoice';
+import LandingPage from '@/pages/LandingPage';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function Root() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  return isAuthenticated ? <Navigate to="/dashboard" /> : <LandingPage />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -32,6 +38,7 @@ function App() {
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Root />} />
 
         {/* Protected routes */}
         <Route
@@ -116,8 +123,7 @@ function App() {
         />
 
         {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

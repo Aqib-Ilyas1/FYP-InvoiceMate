@@ -364,3 +364,79 @@ export const updateInvoiceStatus = async (req: Request, res: Response, next: Nex
     next(error);
   }
 };
+
+export const getInvoiceStats = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+
+    console.log(`Fetching stats for user: ${userId}`);
+
+    const totalRevenue = await prisma.invoice.aggregate({
+      _sum: {
+        total: true,
+      },
+      where: {
+        userId,
+        status: 'paid',
+      },
+    });
+    console.log('Total revenue query result:', totalRevenue);
+
+    const avgInvoiceValue = await prisma.invoice.aggregate({
+      _avg: {
+        total: true,
+      },
+      where: {
+        userId,
+      },
+    });
+    console.log('Average invoice value query result:', avgInvoiceValue);
+
+    const clientCount = await prisma.client.count({
+      where: {
+        userId,
+      },
+    });
+    console.log('Client count query result:', clientCount);
+
+    const dueInvoicesCount = await prisma.invoice.count({
+      where: {
+        userId,
+        status: 'overdue',
+      },
+    });
+    console.log('Due invoices count query result:', dueInvoicesCount);
+    
+    const paidInvoicesCount = await prisma.invoice.count({
+      where: {
+        userId,
+        status: 'paid',
+      },
+    });
+    console.log('Paid invoices count query result:', paidInvoicesCount);
+
+    const draftInvoicesCount = await prisma.invoice.count({
+      where: {
+        userId,
+        status: 'draft',
+      },
+    });
+    console.log('Draft invoices count query result:', draftInvoicesCount);
+
+    const response = {
+      totalRevenue: totalRevenue._sum.total || 0,
+      avgInvoiceValue: avgInvoiceValue._avg.total || 0,
+      clientCount,
+      dueInvoicesCount,
+      paidInvoicesCount,
+      draftInvoicesCount,
+    };
+
+    console.log('Sending stats response:', response);
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error in getInvoiceStats:', error);
+    next(error);
+  }
+};

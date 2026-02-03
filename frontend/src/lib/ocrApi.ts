@@ -3,12 +3,17 @@ import { InvoiceInput } from './invoiceApi';
 
 export interface OcrResponse {
   extractedData: InvoiceInput & {
+    invoice_number?: string;
+    vendor_name?: string;
     clientName?: string;
     clientEmail?: string;
     clientAddress?: string;
     clientPhone?: string;
     confidenceScore?: number;
     source?: string;
+    amount?: string;
+    accountNumber?: string;
+    sender?: string;
   };
 }
 

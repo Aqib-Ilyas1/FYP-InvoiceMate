@@ -7,6 +7,7 @@ import {
   updateInvoice,
   deleteInvoice,
   updateInvoiceStatus,
+  getInvoiceStats,
 } from '../controllers/invoiceController';
 import { authenticate } from '../middleware/auth';
 
@@ -90,6 +91,7 @@ const statusValidation = [
 // Routes
 router.post('/', invoiceValidation, createInvoice);
 router.get('/', paginationValidation, getInvoices);
+router.get('/stats', getInvoiceStats);
 router.get('/:id', getInvoice);
 router.put('/:id', invoiceValidation, updateInvoice);
 router.delete('/:id', deleteInvoice);

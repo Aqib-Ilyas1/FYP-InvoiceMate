@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { invoiceApi } from '@/lib/invoiceApi';
 import {
   DollarSign,
   FileText,
@@ -10,25 +12,48 @@ import {
   CheckCircle,
   Users,
   Plus,
-  ArrowUpRight
+  ArrowUpRight,
+  Loader2
 } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  // Mock data - will be replaced with real API data in later phases
+
+  const { data: stats, isLoading: isLoadingStats } = useQuery({
+    queryKey: ['invoiceStats'],
+    queryFn: invoiceApi.getInvoiceStats,
+  });
+
+  const { data: recentInvoicesData, isLoading: isLoadingInvoices } = useQuery({
+    queryKey: ['recentInvoices'],
+    queryFn: () => invoiceApi.getInvoices({ limit: 5, sortBy: 'createdAt', sortOrder: 'desc' }),
+  });
+
+  const recentInvoices = recentInvoicesData?.invoices || [];
+
+  if (isLoadingStats || isLoadingInvoices) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+        </div>
+      </Layout>
+    );
+  }
+
   const metrics = [
     {
       title: 'Total Revenue',
-      value: '$0.00',
+      value: `$${(parseFloat(stats?.totalRevenue) || 0).toFixed(2)}`,
       description: 'All time earnings',
       icon: DollarSign,
-      trend: '+0%',
+      trend: '',
       iconColor: 'text-green-600',
       bgColor: 'bg-green-50',
     },
     {
       title: 'Pending Invoices',
-      value: '0',
+      value: stats?.dueInvoicesCount || 0,
       description: 'Awaiting payment',
       icon: Clock,
       trend: '0 invoices',
@@ -37,26 +62,22 @@ export default function Dashboard() {
     },
     {
       title: 'Paid Invoices',
-      value: '0',
-      description: 'This month',
+      value: stats?.paidInvoicesCount || 0,
+      description: 'All time',
       icon: CheckCircle,
-      trend: '0 paid',
+      trend: `${stats?.paidInvoicesCount || 0} paid`,
       iconColor: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
       title: 'Total Clients',
-      value: '0',
+      value: stats?.clientCount || 0,
       description: 'Active clients',
       icon: Users,
-      trend: '+0 this month',
+      trend: '',
       iconColor: 'text-purple-600',
       bgColor: 'bg-purple-50',
     },
-  ];
-
-  const recentInvoices: any[] = [
-    // Empty for now - will be populated from API
   ];
 
   return (
@@ -162,16 +183,16 @@ export default function Dashboard() {
                   <tbody>
                     {recentInvoices.map((invoice: any) => (
                       <tr key={invoice.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4 text-sm font-medium">{invoice.number}</td>
-                        <td className="py-3 px-4 text-sm">{invoice.client}</td>
-                        <td className="py-3 px-4 text-sm text-gray-600">{invoice.date}</td>
-                        <td className="py-3 px-4 text-sm font-medium">{invoice.amount}</td>
+                        <td className="py-3 px-4 text-sm font-medium">{invoice.invoiceNumber}</td>
+                        <td className="py-3 px-4 text-sm">{invoice.client?.clientName || 'N/A'}</td>
+                        <td className="py-3 px-4 text-sm text-gray-600">{new Date(invoice.invoiceDate).toLocaleDateString()}</td>
+                        <td className="py-3 px-4 text-sm font-medium">${parseFloat(invoice.total).toFixed(2)}</td>
                         <td className="py-3 px-4">
                           <Badge
                             variant={
                               invoice.status === 'paid'
                                 ? 'success'
-                                : invoice.status === 'pending'
+                                : invoice.status === 'pending' || invoice.status === 'sent'
                                 ? 'warning'
                                 : 'default'
                             }
@@ -202,15 +223,15 @@ export default function Dashboard() {
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Draft Invoices</span>
-                <span className="font-semibold">0</span>
+                <span className="font-semibold">{stats?.draftInvoicesCount || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Overdue Invoices</span>
-                <span className="font-semibold text-red-600">0</span>
+                <span className="font-semibold text-red-600">{stats?.dueInvoicesCount || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Average Invoice Value</span>
-                <span className="font-semibold">$0.00</span>
+                <span className="font-semibold">${(parseFloat(stats?.avgInvoiceValue) || 0).toFixed(2)}</span>
               </div>
             </CardContent>
           </Card>

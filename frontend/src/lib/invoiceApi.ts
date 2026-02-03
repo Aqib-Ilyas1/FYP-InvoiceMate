@@ -102,4 +102,8 @@ export const invoiceApi = {
     const response = await api.patch(`/invoices/${id}/status`, { status });
     return response.data;
   },
+  getInvoiceStats: async (): Promise<any> => {
+    const response = await api.get('/invoices/stats');
+    return response.data;
+  },
 };

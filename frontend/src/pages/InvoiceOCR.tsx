@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -68,7 +68,7 @@ export default function InvoiceOCR() {
         dueDate: data.extractedData.invoiceDate ? new Date(data.extractedData.invoiceDate).toISOString().split('T')[0] : null,
         currency: data.extractedData.currency || 'USD',
         paymentTerms: data.extractedData.paymentTerms || '',
-        notes: `Invoice Number: ${data.extractedData.invoiceNumber}\nAccount Number: ${data.extractedData.accountNumber}\nSender: ${data.extractedData.sender}`,
+        notes: `Account Number: ${data.extractedData.accountNumber}\nSender: ${data.extractedData.sender}`,
         status: 'sent',
         lineItems: data.extractedData.lineItems || [],
       });
@@ -359,6 +359,14 @@ export default function InvoiceOCR() {
                     {extractedData.clientEmail && <p className="text-sm">{extractedData.clientEmail}</p>}
                     {extractedData.clientAddress && <p className="text-sm">{extractedData.clientAddress}</p>}
                     {extractedData.clientPhone && <p className="text-sm">{extractedData.clientPhone}</p>}
+                  </div>
+                )}
+
+                {/* Amount */}
+                {extractedData.amount && (
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <h3 className="font-semibold text-sm mb-2">Detected Amount:</h3>
+                    <p className="font-medium">{extractedData.amount}</p>
                   </div>
                 )}
 
