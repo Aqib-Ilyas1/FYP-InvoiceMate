@@ -39,7 +39,7 @@ Thumbs.db
 # Uploads
 uploads/
 *.upload
-..claude
+.claude/
 
 # Prisma
 backend/prisma/migrations/
