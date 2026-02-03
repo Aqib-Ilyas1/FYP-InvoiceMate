@@ -26,7 +26,7 @@ A modern, full-stack invoice management application that leverages AI to transfo
 - PostgreSQL database
 - Prisma ORM
 - JWT authentication
-- Claude AI API integration
+- Gemini AI API integration
 
 ## Prerequisites
 
