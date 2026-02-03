@@ -1,4 +1,4 @@
-# InvoiceFlow - AI-Powered Invoice Management System
+# InvoiceMate - AI-Powered Invoice Management System
 
 A modern, full-stack invoice management application that leverages AI to transform invoice creation from 15 minutes to 30 seconds.
 
@@ -8,7 +8,6 @@ A modern, full-stack invoice management application that leverages AI to transfo
 - **Natural Language Processing**: Create invoices by typing "Invoice John for 5 hours at $100/hr"
 - **Smart Invoice Editor**: Real-time calculations, client management, and line item tracking
 - **PDF Export**: Professional invoice generation
-- **Payment Tracking**: Monitor payment status and history
 - **Client Database**: Manage all your clients in one place
 
 ## Tech Stack
