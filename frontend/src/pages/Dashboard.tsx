@@ -45,7 +45,7 @@ export default function Dashboard() {
     {
       title: 'Total Revenue',
       value: `$${(parseFloat(stats?.totalRevenue) || 0).toFixed(2)}`,
-      description: 'All time earnings',
+      description: `Avg. sale: $${(parseFloat(stats?.avgInvoiceValue) || 0).toFixed(2)}`,
       icon: DollarSign,
       trend: '',
       iconColor: 'text-green-600',
@@ -53,19 +53,19 @@ export default function Dashboard() {
     },
     {
       title: 'Pending Invoices',
-      value: stats?.dueInvoicesCount || 0,
-      description: 'Awaiting payment',
+      value: stats?.pendingInvoicesCount || 0,
+      description: 'Draft invoices',
       icon: Clock,
-      trend: '0 invoices',
+      trend: `${stats?.pendingInvoicesCount || 0} invoices`,
       iconColor: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
     },
     {
-      title: 'Paid Invoices',
+      title: 'Processed Invoices',
       value: stats?.paidInvoicesCount || 0,
-      description: 'All time',
+      description: 'Sent invoices',
       icon: CheckCircle,
-      trend: `${stats?.paidInvoicesCount || 0} paid`,
+      trend: `${stats?.paidInvoicesCount || 0} sent`,
       iconColor: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
@@ -222,8 +222,8 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Draft Invoices</span>
-                <span className="font-semibold">{stats?.draftInvoicesCount || 0}</span>
+                <span className="text-sm text-gray-600">Pending Invoices</span>
+                <span className="font-semibold">{stats?.pendingInvoicesCount || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Overdue Invoices</span>

@@ -36,6 +36,7 @@ export const createInvoice = async (req: Request, res: Response, next: NextFunct
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.error('Validation errors:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -369,8 +370,6 @@ export const getInvoiceStats = async (req: Request, res: Response, next: NextFun
   try {
     const userId = req.user!.id;
 
-    console.log(`Fetching stats for user: ${userId}`);
-
     const totalRevenue = await prisma.invoice.aggregate({
       _sum: {
         total: true,
@@ -380,7 +379,6 @@ export const getInvoiceStats = async (req: Request, res: Response, next: NextFun
         status: 'paid',
       },
     });
-    console.log('Total revenue query result:', totalRevenue);
 
     const avgInvoiceValue = await prisma.invoice.aggregate({
       _avg: {
@@ -390,14 +388,26 @@ export const getInvoiceStats = async (req: Request, res: Response, next: NextFun
         userId,
       },
     });
-    console.log('Average invoice value query result:', avgInvoiceValue);
 
     const clientCount = await prisma.client.count({
       where: {
         userId,
       },
     });
-    console.log('Client count query result:', clientCount);
+
+    const pendingInvoicesCount = await prisma.invoice.count({
+      where: {
+        userId,
+        status: 'draft',
+      },
+    });
+    
+    const paidInvoicesCount = await prisma.invoice.count({
+      where: {
+        userId,
+        status: 'sent',
+      },
+    });
 
     const dueInvoicesCount = await prisma.invoice.count({
       where: {
@@ -405,38 +415,16 @@ export const getInvoiceStats = async (req: Request, res: Response, next: NextFun
         status: 'overdue',
       },
     });
-    console.log('Due invoices count query result:', dueInvoicesCount);
-    
-    const paidInvoicesCount = await prisma.invoice.count({
-      where: {
-        userId,
-        status: 'paid',
-      },
-    });
-    console.log('Paid invoices count query result:', paidInvoicesCount);
 
-    const draftInvoicesCount = await prisma.invoice.count({
-      where: {
-        userId,
-        status: 'draft',
-      },
-    });
-    console.log('Draft invoices count query result:', draftInvoicesCount);
-
-    const response = {
+    res.json({
       totalRevenue: totalRevenue._sum.total || 0,
       avgInvoiceValue: avgInvoiceValue._avg.total || 0,
       clientCount,
-      dueInvoicesCount,
+      pendingInvoicesCount,
       paidInvoicesCount,
-      draftInvoicesCount,
-    };
-
-    console.log('Sending stats response:', response);
-
-    res.json(response);
+      dueInvoicesCount,
+    });
   } catch (error) {
-    console.error('Error in getInvoiceStats:', error);
     next(error);
   }
 };

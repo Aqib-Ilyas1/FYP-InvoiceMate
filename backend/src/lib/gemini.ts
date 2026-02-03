@@ -10,5 +10,5 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 export const generativeModel = genAI.getGenerativeModel({
   // model: "gemini-1.5-flash",
-  model: "gemini-1.0-pro",
+  model: "gemini-3-flash-preview",
 });

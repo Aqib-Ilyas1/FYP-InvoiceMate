@@ -47,15 +47,18 @@ const invoiceValidation = [
     .withMessage('Line item description is required'),
   body('lineItems.*.quantity')
     .optional()
-    .isFloat({ min: 0.01 })
-    .withMessage('Quantity must be greater than 0'),
+    .isNumeric()
+    .withMessage('Quantity must be a number')
+    .toFloat(),
   body('lineItems.*.unitPrice')
-    .isFloat({ min: 0 })
-    .withMessage('Unit price must be a valid number'),
+    .isNumeric()
+    .withMessage('Unit price must be a number')
+    .toFloat(),
   body('lineItems.*.taxRate')
     .optional()
-    .isFloat({ min: 0, max: 100 })
-    .withMessage('Tax rate must be between 0 and 100'),
+    .isNumeric()
+    .withMessage('Tax rate must be a number')
+    .toFloat(),
 ];
 
 const paginationValidation = [
